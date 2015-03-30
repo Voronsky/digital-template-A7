@@ -1,2 +1,3 @@
 # digital-template-A7
-Repository for Digital assignment 7
+
+This game will be dealing with the topic of the week. WIll update later
