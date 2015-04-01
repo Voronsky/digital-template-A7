@@ -6,6 +6,7 @@
 <script src="js/phaser.js"></script>
 <script src="js/Boot.js"></script>
 <script src="js/Game.js"></script>
+<script src="js/Credits.js"></script>
 
 <style>
 body
@@ -24,9 +25,10 @@ margin-top: 10px;
 
 <script type="text/javascript">
   window.onload = function(){
-      var game = new Phaser.Game(800,600, Phaser.AUTO, 'game');
+      var game = new Phaser.Game(800,600, Phaser.CANVAS, 'game');
       game.state.add('Boot', state.Boot);
       game.state.add('Game', state.Game);
+      game.state.add('Credits', state.Credits);
 
       game.state.start('Boot');
 
