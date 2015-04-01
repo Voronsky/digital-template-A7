@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Lab Escape!</title>
+<script src="js/phaser.js"></script>
+<script src="js/Boot.js"></script>
+<script src="js/Game.js"></script>
+
+<style>
+body
+{
+color: #777;
+font-family: "Avenir", Verdana, sans-serif;
+}
+#readme
+{
+margin-top: 10px;
+}
+</style>
+</head>
+<body>
+<div id="game"></div>
+
+<script type="text/javascript">
+  window.onload = function(){
+      var game = new Phaser.Game(800,600, Phaser.AUTO, 'game');
+      game.state.add('Boot', state.Boot);
+      game.state.add('Game', state.Game);
+
+      game.state.start('Boot');
+
+  }
+</script>
+
+<div id="readme">
+<h2>Lab Escape!</h2>
+<ul>
+<li><strong>High Concept:</strong>
+  Freak experiment that seeks its freedom. Must escape successfully before being caught!
+</li>
+<li><strong>Player Experience Goals:</strong>
+  The attempt here is to get a sense of "adventure" by having the player go to various countries to help find what the cell phone owner was asking for
+</li>
+<li><strong>Genre:</strong>
+  Platformer type of game 
+</li>
+<li><strong>Game play:</strong>
+  Player starts near his home in his home city until a strange comes across and drops a cellphone that begins his journey. All of this is in a cut scene, then the player will have to go through maze-like worlds to find what was asked of him to get.
+
+</li>
+<li><strong>Prototype goal:</strong>
+  More game states, and in-depth understanding as to how to use tiled for designing levels and object functionality.
+</li>
+<li><strong>Features:</strong>
+  Cut scenes, music and a slightly improved AI.
+</li>
+<li><strong>Setting/Premise:</strong>
+  Just another day, in a random city. Forced to travel to other countries for a journey of a lifetime
+</li>
+<li><strong>Story:</strong>
+  An average joe is about to get a rude awakening when he is asked to get random artifacts. With plenty of time to kill, this individual decides to embark on what he is asked to get, in hopes that something fun will come out of it. Yet, there is a secret at the end of it for him that he will soon regret.
+</li>
+<li><strong>Target Audience:</strong>
+  Side scrollers and people who prefer ambient games
+</li>
+<li><strong>Play time:</strong>
+  Possibly up to 5-10 minutes
+</li>
+<li><strong>Strategies:</strong>
+  Being dodgy, in other words making use of platforms and dodging opponents as they come
+</li>
+<li><strong>Prototype Assets:</strong>
+  Most came from the generic phaser resources but the artwork comes straight from opengameart, background Library and the music was by Michael Jackson's Thriller and the sprite for the main character came from SpriteDatabase but a random user, the name is "George"
+</li>
+<li><strong>Prototype Closest Other Game:</strong>
+  Starstruck is perhaps the closest one to this game. Thats about it.
+</li>
+</ul>
+</div>
+</body>
+</html>
