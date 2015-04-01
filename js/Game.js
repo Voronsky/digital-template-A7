@@ -1,0 +1,199 @@
+var keys = Phaser.Keyboard;
+var jumpEnable = false;
+
+state.Game = function (game){
+
+};
+
+state.Game.prototype = {
+    preload: function(){
+	this.load.image('healthBar','assets/health_bar.png');
+	this.load.audio('jump',['assets/audio/mario_jump.mp3']);
+	this.load.tilemap('map','assets/lab.json',null,Phaser.Tilemap.TILED_JSON);
+	this.load.image('gate','assets/tiles/gate.png');
+	this.load.image('tiles','assets/tiles/tiles.png');
+//	this.load.image('tiles3','assets/tiles/tiles3.png');
+	this.load.spritesheet('baddie','assets/baddie.png',32,32);
+	this.load.spritesheet('dude','assets/dude.png',32,48);
+	this.load.image('heart','assets/heart.png')
+
+    },
+
+    create: function(){
+
+	this.jump = this.add.audio('jump');
+	
+	//Importing tilemap stuff
+	this.map = this.add.tilemap('map');
+	this.map.addTilesetImage('tiles','tiles');
+	//this.map.addTilesetImage('tiles3','tiles3');
+	this.map.addTilesetImage('gate');
+	this.layer = this.map.createLayer('ground');
+	this.enemyBounds = this.map.createLayer('enemyBounds');
+
+	this.layer.resizeWorld() //Resize world to JSON size
+
+	this.physics.startSystem(Phaser.Physics.ARCADE);
+	this.physics.arcade.enable(this.enemyBounds);
+	
+	this.doors = this.add.group();
+	this.doors.enableBody = true;
+	
+	this.map.createFromObjects('Door',2,'gate',0,true,false,this.doors);
+	
+	this.map.setCollisionBetween(0,6); //Tile index for Ground layer
+	this.map.setCollisionBetween(7,7, true, 'enemyBounds'); //Ice cube that will check bounds to prevent NPC from falling
+	this.enemyBounds.alpha = 0; //Make the ice cubes invisible
+	
+	this.enemies = this.add.group();
+
+	this.createEnemy();
+	
+	this.hearts = this.add.group();
+	this.hearts.enableBody = true;
+	this.createHearts();
+
+	//Spawning the player and the animations
+	this.player = this.add.sprite(this.world.width - 80,this.world.height - 200, 'dude');
+
+//	this.player = this.add.sprite(500,500,'dude');
+	this.physics.arcade.enable(this.player);
+	this.player.animations.add('left',[0, 1, 2, 3],10,true);
+	this.player.animations.add('right',[5, 6, 7, 8],10,true);
+	this.player.body.bounce.y = 0.1;
+	this.player.body.gravity.y =  400;
+	this.player.body.collideWorldBounds = true;
+	
+	//Adding the camera again
+	this.camera.follow(this.player);
+	
+	//enemy Moves
+	this.time.events.loop(Phaser.Timer.SECOND, this.enemyMove,this);
+	
+	//ALlow the player to jump LOLOLOLOL every 2 seconds LULZ
+	this.time.events.loop(Phaser.Timer.SECOND*2, function(){this.jumpEnable = true;},this);
+	
+	this.healthText = this.add.text(0,0,'Health: ',{fontSize: '24px', fill: '#FFF'});
+	this.healthText.fixedToCamera = true;
+	this.healthBar = this.add.image(100,1,'healthBar');
+	this.healthBar.fixedToCamera = true;
+	this.healthBar.width = 180; //The width of the image
+	
+	this.healthVal = this.healthBar.width;
+
+    },
+
+    update: function(){
+	this.physics.arcade.collide(this.player, this.layer);
+	this.physics.arcade.collide(this.enemies, this.layer);
+	this.physics.arcade.collide(this.enemies, this.enemyBounds);
+	this.physics.arcade.collide(this.player, this.enemies, this.enemyHurt,null,this);
+
+	this.physics.arcade.overlap(this.player, this.hearts, this.collectHeart,null,this);
+	this.physics.arcade.overlap(this.player, this.doors, this.endGame,null,this);
+
+	//Stop the player from moving when no keys are pressed
+	this.player.body.velocity.x = 0;
+	if(this.input.keyboard.isDown(keys.RIGHT)){
+
+	    this.player.body.velocity.x = 200;
+	    this.player.animations.play('right');
+
+	}
+	else if(this.input.keyboard.isDown(keys.LEFT)){
+	    
+	    this.player.body.velocity.x = -200;
+	    this.player.animations.play('left');
+
+	}else{
+	    this.player.animations.stop();
+	    this.player.frame = 4;
+	}
+	
+	//Jumping mechanic
+	if(this.input.keyboard.isDown(keys.UP) &&
+	   this.jumpEnable === true) {
+	    this.jump.volume = 0.4;
+	    this.jump.play();
+	    this.player.body.velocity.y = -400;
+	    this.jumpEnable = false;
+	}
+	
+	this.updateHealthBar(this.healthVal);
+    },
+    
+    createEnemy: function(){
+
+	//Spawn X amount of enemies
+	for(var i=0; i<35; i++){
+	    this.enemy = this.enemies.create(this.world.randomX,this.rnd.integerInRange(100,600),'baddie');
+	    this.physics.arcade.enable(this.enemy);
+	    this.enemy.body.gravity.y = 400;
+	    this.enemy.body.bounce.y = 0.2;
+	    this.enemy.animations.add('left',[0,1], 10,true);
+	    this.enemy.animations.add('right',[2,3], 10, true);
+	    this.enemy.body.collideWorldBounds = true;
+	}
+    },
+    
+    //Adds movement for the enemies
+    enemyMove: function(){
+	this.enemies.forEach(function(enemy) {
+	    var x = Math.round(Math.random())
+	    if(x == 1){
+		enemy.animations.play('left');
+		enemy.body.velocity.x = -100;
+	    }
+	    if(x == 0) {
+		enemy.animations.play('right');
+		enemy.body.velocity.x = 100;
+	    }
+	},this);
+    },
+    
+    enemyHurt: function(player, enemies){
+	this.player.x = this.player.x - 10;
+
+	if(this.healthVal > 0){
+	    this.healthVal -= 9;
+	    this.updateHealthBar(this.healthVal);
+	}
+	if(this.healthVal <= 0){
+	    player.kill();
+	    this.state.restart('Game'); //Does this work?
+	}
+	
+    },
+    
+    createHearts: function(){
+	for(var i = 0; i < 65; i++) {
+	    this.hearts.create(this.rnd.integerInRange(100,this.world.width),this.rnd.integerInRange(100,700),'heart');
+	}
+    },
+
+    collectHeart: function(player, hearts){
+	hearts.kill();
+	//Check to see that the health is less than 180 but not 0
+	//Make sure that health val is NOT 180 or higher
+	if(this.healthVal > 0 && !(this.healthVal >= 180)){
+
+	    this.healthVal +=9; //9 is a factor of 180, so increment it by this much
+
+	}
+
+	
+	
+	this.updateHealthBar(this.healthVal);
+		
+    },
+
+    updateHealthBar: function(healthVal){
+	this.healthBar.width = this.healthVal;
+	return this.healthBar.width;
+    },
+
+    endGame: function(){
+
+    },
+
+}
