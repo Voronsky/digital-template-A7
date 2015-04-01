@@ -29,7 +29,7 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":0,
+                 "x":49,
                  "y":1872
                 }],
          "opacity":1,
@@ -50,7 +50,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":3,
+ "nextobjectid":6,
  "orientation":"orthogonal",
  "properties":
     {
