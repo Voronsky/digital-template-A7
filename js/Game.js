@@ -1,5 +1,6 @@
 var keys = Phaser.Keyboard;
 var jumpEnable = false;
+var timer = 0;
 
 state.Game = function (game){
 
@@ -30,23 +31,24 @@ state.Game.prototype = {
 	this.map.addTilesetImage('gate');
 	this.layer = this.map.createLayer('ground');
 	this.enemyBounds = this.map.createLayer('enemyBounds');
-
+	this.enemyBounds.alpha = 0; //Make the ice cubes invisible
 	this.layer.resizeWorld() //Resize world to JSON size
 
+	//Enabling game physics
 	this.physics.startSystem(Phaser.Physics.ARCADE);
 	this.physics.arcade.enable(this.enemyBounds);
-	
-	this.doors = this.add.group();
-	this.doors.enableBody = true;
-	
-	this.map.createFromObjects('Door',2,'gate',0,true,false,this.doors);
-	
 	this.map.setCollisionBetween(0,6); //Tile index for Ground layer
 	this.map.setCollisionBetween(7,7, true, 'enemyBounds'); //Ice cube that will check bounds to prevent NPC from falling
-	this.enemyBounds.alpha = 0; //Make the ice cubes invisible
+	
+
+	//Adding object groups
+	this.gates = this.add.group();
+	this.gate = this.gates.create(10,this.world.height-100,'gate');
+	this.physics.arcade.enable(this.gate);
+	this.gates.enableBody = true;
+	//this.map.createFromObjects('Door', 2, 'gate', 0, true, false,this.gates);
 	
 	this.enemies = this.add.group();
-
 	this.createEnemy();
 	
 	this.hearts = this.add.group();
@@ -55,8 +57,6 @@ state.Game.prototype = {
 
 	//Spawning the player and the animations
 	this.player = this.add.sprite(this.world.width - 80,this.world.height - 200, 'dude');
-
-//	this.player = this.add.sprite(500,500,'dude');
 	this.physics.arcade.enable(this.player);
 	this.player.animations.add('left',[0, 1, 2, 3],10,true);
 	this.player.animations.add('right',[5, 6, 7, 8],10,true);
@@ -73,27 +73,37 @@ state.Game.prototype = {
 	//ALlow the player to jump LOLOLOLOL every 2 seconds LULZ
 	this.time.events.loop(Phaser.Timer.SECOND*2, function(){this.jumpEnable = true;},this);
 	
+	//Loop the ALert text
+	this.alertText = this.add.text(this.camera.width/2, this.camera.height/2, "ALERT!",{fontSize:'36px', fill: '#FFF'});
+	this.alertText.anchor.setTo(0.5,0.5);
+	this.alertText.fixedToCamera = true;
+	this.alertText.visible = false;
+	
+	//Health text to be setup
 	this.healthText = this.add.text(0,0,'Health: ',{fontSize: '24px', fill: '#FFF'});
 	this.healthText.fixedToCamera = true;
 	this.healthBar = this.add.image(100,1,'healthBar');
 	this.healthBar.fixedToCamera = true;
 	this.healthBar.width = 180; //The width of the image
-	
+
+	//The health value that will resize the health bar throughout game
 	this.healthVal = this.healthBar.width;
 
     },
 
     update: function(){
+
 	this.physics.arcade.collide(this.player, this.layer);
 	this.physics.arcade.collide(this.enemies, this.layer);
+	this.physics.arcade.collide(this.hearts, this.layer);
 	this.physics.arcade.collide(this.enemies, this.enemyBounds);
 	this.physics.arcade.collide(this.player, this.enemies, this.enemyHurt,null,this);
-
 	this.physics.arcade.overlap(this.player, this.hearts, this.collectHeart,null,this);
-	this.physics.arcade.overlap(this.player, this.doors, this.endGame,null,this);
+	this.physics.arcade.overlap(this.player, this.gates, this.endGame,null,this);
 
 	//Stop the player from moving when no keys are pressed
 	this.player.body.velocity.x = 0;
+
 	if(this.input.keyboard.isDown(keys.RIGHT)){
 
 	    this.player.body.velocity.x = 200;
@@ -120,6 +130,13 @@ state.Game.prototype = {
 	}
 	
 	this.updateHealthBar(this.healthVal);
+	
+	//Alert function
+	timer += this.time.elapsed;
+	if(timer >= 5000){ //5 seconds
+	    timer -= 5000;
+	    this.alertText.visible = !(this.alertText.visible);
+	    }
     },
     
     createEnemy: function(){
@@ -152,7 +169,8 @@ state.Game.prototype = {
     },
     
     enemyHurt: function(player, enemies){
-	this.player.x = this.player.x - 10;
+	this.player.x = this.player.x - 5;
+	this.player.y = this.player.y - 10
 
 	if(this.healthVal > 0){
 	    this.healthVal -= 9;
@@ -167,7 +185,13 @@ state.Game.prototype = {
     
     createHearts: function(){
 	for(var i = 0; i < 65; i++) {
-	    this.hearts.create(this.rnd.integerInRange(100,this.world.width),this.rnd.integerInRange(100,700),'heart');
+	    this.heart = this.hearts.create(this.rnd.integerInRange(100,this.world.width - 100),this.rnd.integerInRange(100,this.world.height - 400),'heart'); //Spawn a heart with an offset of 100 from the left game border and minus 100 which is 100 off the right game border. Do the same with the height for top and bottom
+
+	    this.physics.arcade.enable(this.heart)
+	    this.heart.body.gravity.y = 400;
+	    this.heart.body.bounce.y = 0.1;
+	    this.heart.body.collideWorldBounds = true;
+	    
 	}
     },
 
@@ -186,6 +210,23 @@ state.Game.prototype = {
 	this.updateHealthBar(this.healthVal);
 		
     },
+    
+    alert: function(){
+	var blinks = 0;
+	this.alertText.setText("ALERT!");
+	var loop = this.time.events.loop(Phaser.Timer.SECOND*1, function(){
+	    if(blinks <=3){
+		this.alertText.visible = !this.alertText.visible
+		blinks += 1;
+	    }else{
+		this.time.events.remove(loop);
+	    }
+
+	},this);
+
+		     
+			     
+    },
 
     updateHealthBar: function(healthVal){
 	this.healthBar.width = this.healthVal;
@@ -193,7 +234,7 @@ state.Game.prototype = {
     },
 
     endGame: function(){
-
+	this.state.start('Credits',true,false);
     },
 
 }
