@@ -14,7 +14,7 @@ state.Game.prototype = {
 	this.load.image('gate','assets/tiles/gate.png');
 	this.load.image('tiles','assets/tiles/tiles.png');
 //	this.load.image('tiles3','assets/tiles/tiles3.png');
-	this.load.spritesheet('baddie','assets/baddie.png',32,32);
+	this.load.spritesheet('scientist','assets/guy.png',33,34,9,0,4);
 	this.load.spritesheet('dude','assets/dude.png',32,48);
 	this.load.image('heart','assets/heart.png')
 
@@ -143,12 +143,12 @@ state.Game.prototype = {
 
 	//Spawn X amount of enemies
 	for(var i=0; i<35; i++){
-	    this.enemy = this.enemies.create(this.world.randomX,this.rnd.integerInRange(100,600),'baddie');
+	    this.enemy = this.enemies.create(this.world.randomX,this.rnd.integerInRange(100,600),'scientist');
 	    this.physics.arcade.enable(this.enemy);
 	    this.enemy.body.gravity.y = 400;
 	    this.enemy.body.bounce.y = 0.2;
-	    this.enemy.animations.add('left',[0,1], 10,true);
-	    this.enemy.animations.add('right',[2,3], 10, true);
+	    this.enemy.animations.add('left',[4,3,2,1], 10,true);
+	    this.enemy.animations.add('right',[5,6,7,8], 10, true);
 	    this.enemy.body.collideWorldBounds = true;
 	}
     },
